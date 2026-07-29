@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ToastContainer } from '@/components/toast/ToastContainer';
+import { SessionProvider } from '@/lib/auth/session';
 
 export const metadata: Metadata = {
-  title: 'Next.js Application Template',
+  title: 'Contact & Enquiry Management',
   description:
-    'A template for building Next.js applications with external REST APIs',
+    'Submit contact enquiries and triage them through a role-gated back-office workflow.',
 };
 
 export default function RootLayout({
@@ -17,10 +18,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <ToastProvider>
-          <main className="min-h-screen">{children}</main>
-          <ToastContainer />
-        </ToastProvider>
+        <SessionProvider>
+          <ToastProvider>
+            <main className="min-h-screen">{children}</main>
+            <ToastContainer />
+          </ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   );
