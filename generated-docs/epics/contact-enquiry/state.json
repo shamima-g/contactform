@@ -7,9 +7,35 @@
     "dependsOn": [],
     "introducesSharedSurface": true,
     "unverifiedAssumptions": [],
-    "manualTestResults": []
+    "manualTestResults": [
+      {
+        "check": "Visitor can submit an enquiry and sees 'Message sent!' with the form cleared",
+        "result": "passed",
+        "evidence": "e2e story-2 + vitest story-2"
+      },
+      {
+        "check": "Support Agent sees the new enquiry in the inbox and can move it New -> In Progress",
+        "result": "passed",
+        "evidence": "e2e story-3 (new enquiry appears) + story-5 (Start progress)"
+      },
+      {
+        "check": "Resolving an enquiry requires a non-empty reply note",
+        "result": "passed",
+        "evidence": "e2e story-5 + store lifecycle tests"
+      },
+      {
+        "check": "Visitor cannot reach the inbox (direct link shows a permission-denied banner)",
+        "result": "passed",
+        "evidence": "e2e story-1 AC-5 + story-4 gating"
+      },
+      {
+        "check": "Admin can delete an enquiry behind a confirmation; the Agent has no Delete action",
+        "result": "passed",
+        "evidence": "e2e story-6"
+      }
+    ]
   },
-  "phase": "EPIC-END",
+  "phase": "COMPLETE-ON-BRANCH",
   "stories": {
     "story-1-sign-in-role-landing": {
       "title": "Sign in & role-based landing",
@@ -43,5 +69,5 @@
     }
   },
   "halt": null,
-  "lastUpdated": "2026-07-29T06:01:17.056Z"
+  "lastUpdated": "2026-07-29T07:05:34.692Z"
 }
