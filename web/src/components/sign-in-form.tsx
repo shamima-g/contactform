@@ -45,7 +45,9 @@ export function SignInForm() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <CardTitle role="heading" aria-level={1}>
+            Sign in
+          </CardTitle>
           <CardDescription>
             Contact &amp; Enquiry Management — sign in to continue.
           </CardDescription>

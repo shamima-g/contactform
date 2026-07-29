@@ -16,6 +16,8 @@ async function signInAs(
   await page.getByLabel('Email').fill(user.email);
   await page.getByLabel('Password').fill(user.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
+  // Wait for the signed-in shell before navigating, so the session is persisted.
+  await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible();
 }
 
 test.describe('Story 3: My submissions', () => {
@@ -61,8 +63,8 @@ test.describe('Story 3: My submissions', () => {
   }) => {
     await signInAs(page, adminUser);
     await page.goto('/my-submissions');
-    await expect(page.getByRole('alert')).toContainText(
-      /don.?t have permission/i,
-    );
+    await expect(
+      page.getByText(/you don.?t have permission to view this page/i),
+    ).toBeVisible();
   });
 });

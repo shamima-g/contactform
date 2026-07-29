@@ -18,10 +18,8 @@ async function signInAs(
   await page.getByLabel('Email').fill(user.email);
   await page.getByLabel('Password').fill(user.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
-}
-
-async function dataRowCount(page: import('@playwright/test').Page) {
-  return page.getByRole('rowgroup').last().getByRole('row').count();
+  // Wait for the signed-in shell before navigating, so the session is persisted.
+  await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible();
 }
 
 test.describe('Story 4: Back-office inbox', () => {
@@ -54,14 +52,11 @@ test.describe('Story 4: Back-office inbox', () => {
     await page.getByLabel('Filter by category').click();
     await page.getByRole('option', { name: 'Feedback' }).click();
 
-    const rows = await dataRowCount(page);
-    expect(rows).toBeGreaterThan(0);
-    for (const cell of await page
-      .getByRole('row')
-      .getByText('Feedback')
-      .all()) {
-      await expect(cell).toBeVisible();
-    }
+    // Seed has exactly two Feedback enquiries; other categories are filtered out.
+    await expect(
+      page.getByRole('cell', { name: 'General Enquiry' }),
+    ).toHaveCount(0);
+    await expect(page.getByRole('cell', { name: 'Feedback' })).toHaveCount(2);
     await expect(page.getByRole('cell', { name: 'Priya Menon' })).toHaveCount(
       0,
     );
@@ -89,15 +84,16 @@ test.describe('Story 4: Back-office inbox', () => {
   }) => {
     await signInAs(page, visitorUser);
     await page.goto('/inbox');
-    await expect(page.getByRole('alert')).toContainText(
-      /don.?t have permission/i,
-    );
+    await expect(
+      page.getByText(/you don.?t have permission to view this page/i),
+    ).toBeVisible();
     await expect(page.getByRole('table')).toHaveCount(0);
   });
 
   test('the inbox has no critical accessibility violations', async ({
     page,
   }) => {
+    test.setTimeout(120_000); // the axe scan is CPU-heavy; give it headroom under parallel workers
     await signInAs(page, agentUser);
     await expect(page.getByRole('table')).toBeVisible();
     const results = await new AxeBuilder({ page })

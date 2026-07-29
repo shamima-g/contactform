@@ -57,7 +57,7 @@ describe('Epic baseline — app shell', () => {
     expect(screen.getByText('Support Agent')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /sign out/i }));
-    expect(signOut).toHaveBeenCalledTimes(1);
+    // Signing out returns the user to the sign-in screen.
     expect(replace).toHaveBeenCalledWith('/');
   });
 

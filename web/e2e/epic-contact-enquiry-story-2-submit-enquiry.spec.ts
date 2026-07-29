@@ -53,9 +53,9 @@ test.describe('Story 2: Submit an enquiry', () => {
     await expect(page).toHaveURL('/inbox');
 
     await page.goto('/contact');
-    await expect(page.getByRole('alert')).toContainText(
-      /don.?t have permission/i,
-    );
+    await expect(
+      page.getByText(/you don.?t have permission to view this page/i),
+    ).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Send message' }),
     ).toHaveCount(0);

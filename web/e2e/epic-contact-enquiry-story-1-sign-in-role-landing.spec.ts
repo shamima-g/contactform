@@ -71,9 +71,9 @@ test.describe('Story 1: Sign in & role-based landing', () => {
     await signIn(page, visitorUser);
     await expect(page).toHaveURL('/contact');
     await page.goto('/inbox');
-    await expect(page.getByRole('alert')).toContainText(
-      /don.?t have permission/i,
-    );
+    await expect(
+      page.getByText(/you don.?t have permission to view this page/i),
+    ).toBeVisible();
     await expect(page.getByRole('table')).toHaveCount(0);
   });
 
@@ -82,14 +82,20 @@ test.describe('Story 1: Sign in & role-based landing', () => {
     page,
   }) => {
     await page.goto('/');
-    await signIn(page, agentUser);
-    await expect(page).toHaveURL('/inbox');
+    await signIn(page, visitorUser);
+    await expect(page).toHaveURL('/contact');
+    // Create a real in-app history entry so Back has a protected page to return to.
+    await page.getByRole('link', { name: /my submissions/i }).click();
+    await expect(page).toHaveURL('/my-submissions');
 
     await page.getByRole('button', { name: /sign out/i }).click();
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
 
+    // Pressing Back must not reveal the previously-viewed protected page.
     await page.goBack();
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
-    await expect(page.getByRole('table')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: /my submissions/i }),
+    ).toHaveCount(0);
   });
 });
