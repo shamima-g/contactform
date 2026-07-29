@@ -28,7 +28,7 @@
     },
     "story-4-inbox": {
       "title": "Back-office inbox",
-      "status": "not_started",
+      "status": "complete",
       "route": "/inbox"
     },
     "story-5-triage-status": {
@@ -43,5 +43,5 @@
     }
   },
   "halt": null,
-  "lastUpdated": "2026-07-29T05:47:05.959Z"
+  "lastUpdated": "2026-07-29T05:52:05.834Z"
 }
