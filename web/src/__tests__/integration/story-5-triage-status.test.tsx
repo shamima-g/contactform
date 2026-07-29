@@ -8,6 +8,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 
+vi.mock('@/lib/auth/session', () => ({
+  useSession: () => ({
+    user: {
+      email: 'agent@example.com',
+      role: 'Support Agent',
+      name: 'Sam Agent',
+    },
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+  }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 vi.mock('@/lib/api/enquiries', () => ({
   listAllEnquiries: vi.fn(),
   updateEnquiryStatus: vi.fn(),

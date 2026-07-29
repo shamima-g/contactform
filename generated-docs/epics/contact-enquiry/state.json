@@ -38,10 +38,10 @@
     },
     "story-6-admin-delete": {
       "title": "Admin delete",
-      "status": "not_started",
+      "status": "complete",
       "route": "/inbox"
     }
   },
   "halt": null,
-  "lastUpdated": "2026-07-29T05:56:52.853Z"
+  "lastUpdated": "2026-07-29T06:00:22.910Z"
 }

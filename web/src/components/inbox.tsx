@@ -21,9 +21,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/status-badge';
 import { ResolveDialog } from '@/components/resolve-dialog';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { CATEGORIES, STATUSES } from '@/types/domain';
 import type { Category, Enquiry, EnquiryQuery, Status } from '@/types/domain';
-import { listAllEnquiries, updateEnquiryStatus } from '@/lib/api/enquiries';
+import {
+  deleteEnquiry,
+  listAllEnquiries,
+  updateEnquiryStatus,
+} from '@/lib/api/enquiries';
+import { useSession } from '@/lib/auth/session';
 
 const PAGE_SIZE = 5;
 
@@ -50,6 +56,10 @@ export function Inbox() {
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [resolving, setResolving] = useState<Enquiry | null>(null);
+  const [deleting, setDeleting] = useState<Enquiry | null>(null);
+
+  const { user } = useSession();
+  const canDelete = user?.role === 'Admin';
 
   const refetch = () => setRefreshKey((k) => k + 1);
 
@@ -78,6 +88,12 @@ export function Inbox() {
   const confirmResolve = async (replyNote: string) => {
     if (!resolving) return;
     await updateEnquiryStatus(resolving.id, 'Resolved', replyNote);
+    refetch();
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    await deleteEnquiry(deleting.id);
     refetch();
   };
 
@@ -256,7 +272,16 @@ export function Inbox() {
                           Resolve
                         </Button>
                       )}
-                      {enquiry.status === 'Resolved' && (
+                      {canDelete && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setDeleting(enquiry)}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                      {enquiry.status === 'Resolved' && !canDelete && (
                         <span
                           className="text-sm text-muted-foreground"
                           aria-label="No further actions"
@@ -281,6 +306,16 @@ export function Inbox() {
           if (!next) setResolving(null);
         }}
         onConfirm={confirmResolve}
+      />
+
+      <DeleteConfirmDialog
+        key={deleting?.id ?? 'none-del'}
+        enquiry={deleting}
+        open={deleting !== null}
+        onOpenChange={(next) => {
+          if (!next) setDeleting(null);
+        }}
+        onConfirm={confirmDelete}
       />
 
       <div className="flex items-center justify-between">
