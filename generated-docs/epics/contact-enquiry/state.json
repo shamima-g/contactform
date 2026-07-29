@@ -23,7 +23,7 @@
     },
     "story-3-my-submissions": {
       "title": "My submissions",
-      "status": "not_started",
+      "status": "complete",
       "route": "/my-submissions"
     },
     "story-4-inbox": {
@@ -43,5 +43,5 @@
     }
   },
   "halt": null,
-  "lastUpdated": "2026-07-29T05:44:41.990Z"
+  "lastUpdated": "2026-07-29T05:47:05.959Z"
 }
