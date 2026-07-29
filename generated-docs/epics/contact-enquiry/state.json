@@ -33,7 +33,7 @@
     },
     "story-5-triage-status": {
       "title": "Triage: status lifecycle",
-      "status": "not_started",
+      "status": "complete",
       "route": "/inbox"
     },
     "story-6-admin-delete": {
@@ -43,5 +43,5 @@
     }
   },
   "halt": null,
-  "lastUpdated": "2026-07-29T05:52:05.834Z"
+  "lastUpdated": "2026-07-29T05:56:52.853Z"
 }

@@ -20,9 +20,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/status-badge';
+import { ResolveDialog } from '@/components/resolve-dialog';
 import { CATEGORIES, STATUSES } from '@/types/domain';
 import type { Category, Enquiry, EnquiryQuery, Status } from '@/types/domain';
-import { listAllEnquiries } from '@/lib/api/enquiries';
+import { listAllEnquiries, updateEnquiryStatus } from '@/lib/api/enquiries';
 
 const PAGE_SIZE = 5;
 
@@ -47,6 +48,10 @@ export function Inbox() {
     items: Enquiry[];
     total: number;
   } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [resolving, setResolving] = useState<Enquiry | null>(null);
+
+  const refetch = () => setRefreshKey((k) => k + 1);
 
   useEffect(() => {
     let active = true;
@@ -63,7 +68,18 @@ export function Inbox() {
     return () => {
       active = false;
     };
-  }, [category, status, sortBy, sortDir, page]);
+  }, [category, status, sortBy, sortDir, page, refreshKey]);
+
+  const startProgress = async (id: string) => {
+    await updateEnquiryStatus(id, 'In Progress');
+    refetch();
+  };
+
+  const confirmResolve = async (replyNote: string) => {
+    if (!resolving) return;
+    await updateEnquiryStatus(resolving.id, 'Resolved', replyNote);
+    refetch();
+  };
 
   const loading = result === null;
   const items = result?.items ?? [];
@@ -197,13 +213,14 @@ export function Inbox() {
                   Submitted {sortIcon('createdAt')}
                 </button>
               </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!loading && items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="py-10 text-center text-muted-foreground"
                 >
                   No enquiries match the current filters.
@@ -223,12 +240,48 @@ export function Inbox() {
                     <StatusBadge status={enquiry.status} />
                   </TableCell>
                   <TableCell>{formatDate(enquiry.createdAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {enquiry.status === 'New' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => startProgress(enquiry.id)}
+                        >
+                          Start progress
+                        </Button>
+                      )}
+                      {enquiry.status === 'In Progress' && (
+                        <Button size="sm" onClick={() => setResolving(enquiry)}>
+                          Resolve
+                        </Button>
+                      )}
+                      {enquiry.status === 'Resolved' && (
+                        <span
+                          className="text-sm text-muted-foreground"
+                          aria-label="No further actions"
+                        >
+                          —
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <ResolveDialog
+        key={resolving?.id ?? 'none'}
+        enquiry={resolving}
+        open={resolving !== null}
+        onOpenChange={(next) => {
+          if (!next) setResolving(null);
+        }}
+        onConfirm={confirmResolve}
+      />
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground" aria-live="polite">
