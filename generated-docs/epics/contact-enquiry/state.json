@@ -5,12 +5,19 @@
     "name": "Contact & Enquiry Management",
     "createdAt": "2026-07-29T05:21:33.720Z",
     "dependsOn": [],
-    "introducesSharedSurface": false,
+    "introducesSharedSurface": true,
     "unverifiedAssumptions": [],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "story-1-sign-in-role-landing": { "title": "Sign in & role-based landing", "status": "not_started", "route": "/" },
+    "story-2-submit-enquiry": { "title": "Submit an enquiry", "status": "not_started", "route": "/contact" },
+    "story-3-my-submissions": { "title": "My submissions", "status": "not_started", "route": "/my-submissions" },
+    "story-4-inbox": { "title": "Back-office inbox", "status": "not_started", "route": "/inbox" },
+    "story-5-triage-status": { "title": "Triage: status lifecycle", "status": "not_started", "route": "/inbox" },
+    "story-6-admin-delete": { "title": "Admin delete", "status": "not_started", "route": "/inbox" }
+  },
   "halt": null,
   "lastUpdated": "2026-07-29T05:21:33.720Z"
 }
