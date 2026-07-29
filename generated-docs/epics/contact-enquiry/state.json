@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "contact-enquiry",
+    "name": "Contact & Enquiry Management",
+    "createdAt": "2026-07-29T05:21:33.720Z",
+    "dependsOn": [],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-07-29T05:21:33.720Z"
+}
