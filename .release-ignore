@@ -1,0 +1,26 @@
+# Used by .github/workflows/publish-template.yml
+
+# Template maintainer documentation
+.template-docs/template-maintainers/
+
+# Release infrastructure (self-referential)
+.release-ignore
+.github/workflows/publish-template.yml
+# The maintainer-only release command (drives the publish pipeline; dev repo only)
+.claude/commands/release.md
+
+# Template-dev test files (not needed by end users)
+.claude/**/*.tests.js
+.github/scripts/*.test.js
+# CI workflow that runs the above suites — dev repo only (the test files it runs
+# are excluded above, so it must never reach the release repo)
+.github/workflows/template-tests.yml
+# Local template-testing build — dev repo only, never shipped to users
+.github/workflows/docker-build.yml
+
+# Each repo maintains its own README independently
+/README.md
+
+# Safety net: generated-docs should be empty folders in release
+generated-docs/**/*.md
+generated-docs/**/*.html

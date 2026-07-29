@@ -1,0 +1,280 @@
+{
+  "featureName": "BetterBond-Commission-Payments-POC-002",
+  "specPath": "documentation\\BetterBond-Commission-Payments-POC-002.md",
+  "currentEpic": 2,
+  "currentStory": 4,
+  "currentPhase": "REALIGN",
+  "phaseStatus": "ready",
+  "epics": {
+    "1": {
+      "phase": "COMPLETE",
+      "stories": {
+        "1": {
+          "phase": "COMPLETE"
+        },
+        "2": {
+          "phase": "COMPLETE"
+        },
+        "3": {
+          "phase": "COMPLETE"
+        },
+        "4": {
+          "phase": "COMPLETE"
+        },
+        "5": {
+          "phase": "COMPLETE"
+        },
+        "6": {
+          "phase": "COMPLETE"
+        },
+        "7": {
+          "phase": "COMPLETE"
+        }
+      },
+      "totalStories": 7
+    },
+    "2": {
+      "stories": {
+        "1": {
+          "phase": "COMPLETE"
+        },
+        "2": {
+          "phase": "COMPLETE"
+        },
+        "3": {
+          "phase": "COMPLETE"
+        },
+        "4": {
+          "phase": "PENDING"
+        },
+        "5": {
+          "phase": "PENDING"
+        },
+        "6": {
+          "phase": "PENDING"
+        },
+        "7": {
+          "phase": "PENDING"
+        },
+        "8": {
+          "phase": "PENDING"
+        }
+      },
+      "totalStories": 8
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-02-16T09:16:04.081Z",
+      "epic": 1,
+      "story": 3,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T09:20:10.723Z",
+      "epic": 1,
+      "story": 4,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T09:24:25.017Z",
+      "epic": 1,
+      "story": 4,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T09:31:05.862Z",
+      "epic": 1,
+      "story": 4,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T09:38:59.109Z",
+      "epic": 1,
+      "story": 4,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T09:43:44.299Z",
+      "epic": 1,
+      "story": 5,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T09:47:53.781Z",
+      "epic": 1,
+      "story": 5,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T09:56:14.335Z",
+      "epic": 1,
+      "story": 5,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T10:16:42.480Z",
+      "epic": 1,
+      "story": 5,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T11:07:22.569Z",
+      "epic": 1,
+      "story": 6,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T11:10:46.082Z",
+      "epic": 1,
+      "story": 6,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T11:13:20.127Z",
+      "epic": 1,
+      "story": 6,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T11:20:22.031Z",
+      "epic": 1,
+      "story": 6,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T11:23:10.497Z",
+      "epic": 1,
+      "story": 7,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T11:26:37.284Z",
+      "epic": 1,
+      "story": 7,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T11:56:45.392Z",
+      "epic": 1,
+      "story": 7,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T12:33:05.971Z",
+      "epic": 1,
+      "story": 7,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T12:47:05.147Z",
+      "epic": 2,
+      "story": 1,
+      "from": "PENDING",
+      "to": "REALIGN"
+    },
+    {
+      "timestamp": "2026-02-16T12:57:06.202Z",
+      "epic": 2,
+      "story": 1,
+      "from": "REALIGN",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T13:01:25.013Z",
+      "epic": 2,
+      "story": 1,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T13:09:49.253Z",
+      "epic": 2,
+      "story": 1,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T13:49:21.036Z",
+      "epic": 2,
+      "story": 1,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T13:57:40.202Z",
+      "epic": 2,
+      "story": 2,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T14:02:18.037Z",
+      "epic": 2,
+      "story": 2,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T14:12:12.860Z",
+      "epic": 2,
+      "story": 2,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T14:18:42.191Z",
+      "epic": 2,
+      "story": 2,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-02-16T14:24:30.621Z",
+      "epic": 2,
+      "story": 3,
+      "from": "PENDING",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-02-16T14:28:56.306Z",
+      "epic": 2,
+      "story": 3,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-02-16T14:48:04.328Z",
+      "epic": 2,
+      "story": 3,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-02-16T15:05:27.405Z",
+      "epic": 2,
+      "story": 3,
+      "from": "QA",
+      "to": "COMPLETE"
+    }
+  ],
+  "lastUpdated": "2026-02-16T15:05:27.406Z",
+  "totalEpics": 3
+}

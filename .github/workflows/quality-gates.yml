@@ -1,0 +1,504 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - "feature/**"
+    types: [opened, synchronize, reopened]
+  # Push is ALSO path-filtered. The epic-branch workflow lands two commits on main
+  # per epic: the merge commit (real code) and a `chore(...): mark epic complete`
+  # commit that touches only generated-docs/<slug>/state.json. The gates test code,
+  # so a docs-only push has nothing to check — the paths allowlist skips it,
+  # dropping the redundant third CI run. PRs stay UNfiltered on purpose: every epic
+  # PR touches web/** anyway, and leaving pull_request unfiltered sidesteps the
+  # "skipped required check blocks the merge" gotcha.
+  push:
+    branches:
+      - main
+      - master
+      - "feature/**"
+    paths:
+      - 'web/**'
+      - '.github/workflows/quality-gates.yml'
+      - '.github/scripts/**'
+
+# Cancel a run when a newer commit supersedes it. Push a fresh commit to a PR
+# before its gates finish and the older run is worthless — nobody merges on a
+# stale commit — so we cancel it instead of paying it out to completion. GitHub
+# bills every job rounded up to the whole minute, so a cancelled three-gate run
+# saves real minutes, and the saving compounds across every repo built from this
+# template.
+#
+# Keyed by workflow + ref so only runs for the SAME PR/branch supersede each
+# other. cancel-in-progress is gated to pull_request on purpose: pushes to
+# main/master (and feature/** integration branches) run to completion, so the
+# record of what actually landed on a shared branch is never a cancelled one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Required permissions for PR comments and status checks
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+# Node version policy
+# -------------------
+# Every gate runs on the Node version in NODE_VERSION below — set to 22, the
+# supported minimum this template declares (web/scripts/check-node-version.js
+# enforces it at install). 22 is a baseline, not a ceiling: apps generated from
+# this template can run any Node >=22.
+#
+# If your deployed app runs a newer Node, change NODE_VERSION once to match your
+# deploy target — every gate reads it, so CI stays in sync with production. A
+# single app only needs to test the one version it ships on; no need for a range.
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # Each gate caches the npm download dir (~/.npm) via setup-node's built-in
+  # `cache: 'npm'` — keyed on the lockfile hash — and runs `npm ci` itself. Gates
+  # fan out in parallel, and the cache footprint is one small ~/.npm entry per
+  # lockfile (vs. full node_modules trees).
+
+  # Gate 2: Security - npm audit and secret scanning
+  security:
+    name: 'Gate 2: Security'
+    runs-on: ubuntu-latest
+    outputs:
+      npm-audit-result: ${{ steps.npm-audit.outcome }}
+      secret-scan-result: ${{ steps.secret-patterns.outputs.secret_scan_result }}
+      security-patterns-result: ${{ steps.security-patterns.outcome }}
+      security-summary: ${{ steps.security-summary.outputs.summary }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for TruffleHog scanning
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Audits production dependencies and fails the job on any Critical/High
+      # advisory. The script names each offending dependency in this step's log.
+      - name: Audit production dependencies for known vulnerabilities
+        run: node ../.github/scripts/audit-gate.js
+        id: npm-audit
+
+      - name: Check for secrets in code
+        id: trufflehog
+        # Runs on both pushes and pull requests. With base/head omitted, the
+        # action auto-detects the commit range from the event (push: before→after;
+        # PR: base→head). A push whose payload has no commits exits 0 with
+        # "No commits to scan" — harmless.
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --only-verified
+
+      - name: Scan for hardcoded secrets (regex patterns)
+        id: secret-patterns
+        working-directory: .
+        run: |
+          bash .github/scripts/scan-secrets.sh --dir web
+          echo "secret_scan_result=passed" >> $GITHUB_OUTPUT
+        # If scan-secrets.sh exits 1, the step fails and the output is not set —
+        # which is the desired behaviour (block the PR).
+
+      - name: Run security pattern validation
+        run: node ../.github/scripts/security-validator.js
+        continue-on-error: false
+        id: security-patterns
+
+      - name: Security Report
+        if: always()
+        id: security-summary
+        run: |
+          echo "### Security Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Build summary for PR comment
+          SUMMARY="## 🔒 Security Gate Results\n\n"
+
+          # Report one check to both the job summary and the PR-comment buffer.
+          # A step that did not run (outcome "skipped") is reported as skipped,
+          # not failed — otherwise a check that an earlier failure prevented from
+          # running would look like it had failed.
+          # Args: outcome, label, pass-text, fail-text, skipped-text
+          report() {
+            local icon msg
+            case "$1" in
+              success) icon="✅"; msg="$3" ;;
+              skipped) icon="⏭️"; msg="$5" ;;
+              *)       icon="❌"; msg="$4" ;;
+            esac
+            echo "${icon} ${2}: ${msg}" >> $GITHUB_STEP_SUMMARY
+            SUMMARY="${SUMMARY}${icon} **${2}**: ${msg}\n"
+          }
+          report "${{ steps.npm-audit.outcome }}" "Dependency audit" "No Critical or High vulnerabilities" "Found a Critical or High vulnerability" "Skipped — an earlier check failed"
+          report "${{ steps.trufflehog.outcome }}" "TruffleHog" "Secret scanning complete" "Verified secret detected" "Skipped — an earlier check failed"
+          report "${{ steps.secret-patterns.outcome }}" "Hardcoded secrets scan" "No secrets found" "Potential secrets detected" "Skipped — an earlier check failed"
+          report "${{ steps.security-patterns.outcome }}" "Security patterns" "Validation passed" "Issues found" "Skipped — an earlier check failed"
+
+          # Output summary for PR comment (escape newlines for GitHub output)
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post Security Results to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const commentIdentifier = '<!-- quality-gate-security -->';
+            const body = `${commentIdentifier}
+            ## 🔒 Security Gate Results
+
+            | Check | Status |
+            |-------|--------|
+            | Dependency audit | ${{ steps.npm-audit.outcome == 'success' && '✅ Pass' || (steps.npm-audit.outcome == 'skipped' && '⏭️ Skipped — an earlier check failed' || '❌ Critical/High vulnerability') }} |
+            | TruffleHog | ${{ steps.trufflehog.outcome == 'success' && '✅ Pass' || (steps.trufflehog.outcome == 'skipped' && '⏭️ Skipped — an earlier check failed' || '❌ Verified secret found') }} |
+            | Hardcoded secrets | ${{ steps.secret-patterns.outcome == 'success' && '✅ Pass' || (steps.secret-patterns.outcome == 'skipped' && '⏭️ Skipped — an earlier check failed' || '❌ Potential secrets found') }} |
+            | Security patterns | ${{ steps.security-patterns.outcome == 'success' && '✅ Pass' || (steps.security-patterns.outcome == 'skipped' && '⏭️ Skipped — an earlier check failed' || '❌ Issues found') }} |
+
+            <details>
+            <summary>What was checked</summary>
+
+            - **Dependency audit**: Scans production dependencies; Critical or High vulnerabilities fail the gate, Medium and Low are reported only
+            - **TruffleHog**: Scans this PR's changes for verified leaked secrets
+            - **Hardcoded secrets**: Regex patterns for API keys, passwords, AWS keys, tokens
+            - **Security patterns**: RBAC, input validation, and secure coding practices
+
+            </details>
+
+            ---
+            *Updated: ${new Date().toISOString()}*
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.body.includes(commentIdentifier)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+              console.log('Updated existing security comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+              console.log('Created new security comment');
+            }
+
+  # Gate 3: Code Quality - TypeScript, ESLint, Prettier, Build
+  code-quality:
+    name: 'Gate 3: Code Quality'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: |
+          if ! npx tsc --noEmit; then
+            echo "::error title=TypeScript Error::Type checking failed. Please fix the TypeScript errors above."
+            exit 1
+          fi
+        id: typescript
+
+      - name: Run ESLint
+        run: |
+          if ! npm run lint; then
+            echo "::error title=ESLint Error::Linting failed. Please fix the ESLint errors above."
+            exit 1
+          fi
+        id: eslint
+
+      - name: Run Prettier check
+        run: |
+          if ! npm run format:check; then
+            echo "::error title=Prettier Error::Code formatting check failed. Run 'npm run format' to fix formatting issues."
+            exit 1
+          fi
+        id: prettier
+
+      - name: Build production bundle
+        run: |
+          if ! npm run build; then
+            echo "::error title=Build Error::Production build failed. Please fix the build errors above."
+            exit 1
+          fi
+        id: build
+
+      - name: Code Quality Report
+        if: always()
+        run: |
+          echo "### Code Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ${{ steps.typescript.outcome == 'success' && 'Pass' || 'Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ESLint | ${{ steps.eslint.outcome == 'success' && 'Pass' || 'Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Prettier | ${{ steps.prettier.outcome == 'success' && 'Pass' || 'Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ steps.build.outcome == 'success' && 'Pass' || 'Fail' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post Code Quality Results to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const commentIdentifier = '<!-- quality-gate-code-quality -->';
+            const body = `${commentIdentifier}
+            ## 🔍 Code Quality Gate Results
+
+            | Check | Status |
+            |-------|--------|
+            | TypeScript | ${{ steps.typescript.outcome == 'success' && '✅ Pass' || '❌ Type errors found' }} |
+            | ESLint | ${{ steps.eslint.outcome == 'success' && '✅ Pass' || '❌ Lint errors found' }} |
+            | Prettier | ${{ steps.prettier.outcome == 'success' && '✅ Pass' || '❌ Formatting issues' }} |
+            | Build | ${{ steps.build.outcome == 'success' && '✅ Pass' || '❌ Build failed' }} |
+
+            <details>
+            <summary>What was checked</summary>
+
+            - **TypeScript**: Strict type checking with \`tsc --noEmit\`
+            - **ESLint**: Code linting with Next.js recommended rules
+            - **Prettier**: Code formatting consistency
+            - **Build**: Production build compilation
+
+            </details>
+
+            ---
+            *Updated: ${new Date().toISOString()}*
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.body.includes(commentIdentifier)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+              console.log('Updated existing code quality comment');
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+              console.log('Created new code quality comment');
+            }
+
+  # Gate 4: Testing - Vitest tests
+  testing:
+    name: 'Gate 4: Testing'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test quality check
+        run: |
+          if ! npm run test:quality; then
+            echo "::error title=Test Quality Failure::Test files contain anti-patterns (testing implementation details). See output above for specific issues."
+            exit 1
+          fi
+        id: test-quality
+
+      - name: Run Vitest tests
+        run: |
+          if ! npm test -- --coverage; then
+            echo "::error title=Tests Failed::One or more tests did not pass. Check the test output for details."
+            exit 1
+          fi
+        env:
+          CI: true
+        id: vitest
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: web/coverage/
+          retention-days: 30
+
+      - name: Testing Report
+        if: always()
+        run: |
+          echo "### Testing Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.vitest.outcome }}" == "success" ]; then
+            echo "All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Some tests failed - review the 'Gate 4: Testing' job for failed test details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post Testing Results to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const commentIdentifier = '<!-- quality-gate-testing -->';
+            const body = `${commentIdentifier}
+            ## 🧪 Testing Gate Results
+
+            | Check | Status |
+            |-------|--------|
+            | Tests | ${{ steps.vitest.outcome == 'success' && '✅ All tests passed' || '❌ Some tests failed' }} |
+
+            <details>
+            <summary>Test details</summary>
+
+            - **What ran**: The app's automated tests, which check that features behave the way users expect
+            - **Coverage report**: Download it from the workflow's Artifacts section
+            - **Node version**: Tests run on Node ${{ env.NODE_VERSION }}
+            - **Tools**: Vitest with React Testing Library
+
+            </details>
+
+            ---
+            *Updated: ${new Date().toISOString()}*
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.body.includes(commentIdentifier)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body,
+              });
+              console.log('Updated existing testing comment');
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+              console.log('Created new testing comment');
+            }
+
+  # Summary job that depends on all gates
+  quality-gates-summary:
+    name: All Quality Gates
+    runs-on: ubuntu-latest
+    needs: [security, code-quality, testing]
+    if: always()
+    steps:
+      - name: Check all gates passed
+        run: |
+          echo "### Quality Gates Result" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Testing | ${{ needs.testing.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          FAILED_GATES=""
+
+          if [ "${{ needs.security.result }}" != "success" ]; then
+            FAILED_GATES="${FAILED_GATES}Security, "
+            echo "::error title=Security Gate Failed::Security checks did not pass. Review the Security job for details."
+          fi
+
+          if [ "${{ needs.code-quality.result }}" != "success" ]; then
+            FAILED_GATES="${FAILED_GATES}Code Quality, "
+            echo "::error title=Code Quality Gate Failed::Code quality checks did not pass. Review TypeScript, ESLint, Prettier, or Build errors."
+          fi
+
+          if [ "${{ needs.testing.result }}" != "success" ]; then
+            FAILED_GATES="${FAILED_GATES}Testing, "
+            echo "::error title=Testing Gate Failed::One or more tests did not pass. Review the 'Gate 4: Testing' job for failed test details."
+          fi
+
+          if [ -n "$FAILED_GATES" ]; then
+            # Remove trailing comma and space
+            FAILED_GATES="${FAILED_GATES%, }"
+            echo "**❌ Failed gates: ${FAILED_GATES}**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues above before merging." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "**✅ All quality gates passed! This PR is ready for review.**" >> $GITHUB_STEP_SUMMARY
+          fi

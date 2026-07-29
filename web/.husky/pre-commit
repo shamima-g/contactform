@@ -1,0 +1,6 @@
+# Secret scan — runs on staged files before anything else.
+# tsc uses tsconfig.precommit.json (shipping source only, test layers excluded):
+# during BUILD the not-yet-built stories' test files are deliberately TDD-red, so a
+# project-wide tsc here would block every per-story commit. Test-layer types are
+# type-checked in full at epic-end (B7.0) and in CI, where every story is built.
+bash .github/scripts/scan-secrets.sh --staged && cd web && npx tsc --noEmit -p tsconfig.precommit.json && npx lint-staged

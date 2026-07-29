@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Cost</title>
+<style>
+  :root {
+    --bg:#f6f4ef; --card:#fff; --ink:#2b2a26; --muted:#6f6c63; --line:#e5e1d8;
+    --accent:#b4552d; --accent-soft:#f3e2d8; --green:#3e6b4f; --blue:#3d5a80; --gold:#9a7b2d;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 20px 72px; background:var(--bg); color:var(--ink); font-family:Georgia,'Times New Roman',serif; line-height:1.5; }
+  .wrap { max-width:1120px; margin:0 auto; }
+  h1 { font-size:30px; margin:0 0 4px; font-weight:600; }
+  h1 em { color:var(--accent); font-style:italic; }
+  .sub { color:var(--muted); margin-bottom:10px; font-size:15px; }
+  .ground { display:inline-block; background:var(--accent-soft); color:var(--accent); font-family:system-ui,sans-serif; font-size:12.5px; padding:3px 11px; border-radius:999px; margin-bottom:24px; }
+  h2 { font-size:20px; margin:42px 0 6px; border-bottom:2px solid var(--line); padding-bottom:6px; }
+  h2 .q { font-size:14px; color:var(--muted); font-weight:400; font-style:italic; font-family:Georgia,serif; }
+
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .card .k { font-size:12.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .card .v { font-size:26px; font-weight:600; margin-top:4px; }
+  .card .d { font-size:13px; color:var(--muted); margin-top:2px; }
+  .card .v.zar { color:var(--accent); }
+  .card .v.good { color:var(--green); }
+
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:14.5px; }
+  th,td { padding:9px 12px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { background:#efece4; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  th:first-child,td:first-child { text-align:left; white-space:normal; }
+  tr.groupToggle { cursor:pointer; }
+  tr.groupToggle td { background:#efece4; font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  tr.groupToggle .gtot { text-transform:none; font-weight:600; color:var(--ink); }
+  tr.groupToggle:hover td { background:#e7e3d9; }
+  tr.groupToggle .caret { display:inline-block; width:12px; margin-right:6px; color:var(--accent); font-size:11px; transition:transform .15s ease; }
+  tr.groupToggle.open .caret { transform:rotate(90deg); }
+  tr.total td { font-weight:700; background:#faf8f3; border-top:2px solid var(--ink); }
+  td.zar { font-weight:700; color:var(--accent); }
+  .dim { color:var(--muted); }
+  .pill { display:inline-block; font-size:11.5px; font-family:system-ui,sans-serif; padding:1px 8px; border-radius:999px; background:var(--accent-soft); color:var(--accent); }
+  .pill.zero { background:#eee; color:#aaa; }
+  .pill.warn { background:#f6e0d6; color:var(--accent); }
+
+  .rate { margin:18px 0 6px; font-size:14px; color:var(--muted); }
+  .rate input { width:90px; font:inherit; padding:3px 6px; border:1px solid var(--line); border-radius:6px; text-align:right; }
+
+  .hbar { display:grid; grid-template-columns:150px 1fr 130px; align-items:center; gap:12px; margin:7px 0; }
+  .hbar .lbl { font-size:13.5px; font-family:system-ui,sans-serif; text-align:right; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hbar .track { background:#f1eee6; border-radius:5px; height:20px; position:relative; overflow:hidden; }
+  .hbar .track i { position:absolute; left:0; top:0; height:100%; border-radius:5px; min-width:2px; display:block; }
+  .hbar .val { font-size:13px; color:var(--muted); font-family:system-ui,sans-serif; }
+  .blk { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+
+  .stack { display:flex; height:22px; border-radius:6px; overflow:hidden; border:1px solid var(--line); margin:4px 0 2px; }
+  .stack span { display:block; height:100%; }
+  .legend { font-size:13.5px; color:var(--muted); margin-top:10px; }
+  .sw { display:inline-block; width:11px; height:11px; border-radius:3px; margin:0 5px 0 14px; vertical-align:-1px; }
+  .m-0{background:var(--accent);} .m-1{background:var(--blue);} .m-2{background:var(--green);} .m-3{background:var(--gold);} .m-4{background:#9b6a8f;}
+  .t-read{background:var(--blue);} .t-edit{background:var(--accent);} .t-write{background:var(--gold);} .t-bash{background:var(--green);} .t-other{background:#9b6a8f;}
+  .note { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:8px; padding:14px 16px; font-size:14px; margin-top:16px; }
+  .note ul { margin:8px 0 0 18px; padding:0; } .note li { margin:4px 0; }
+  .note strong { color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Build <em>Cost</em></h1>
+  <div class="sub">Feature: <strong id="featureName"></strong> · Stadium&nbsp;8 workflow · generated <span id="genAt"></span></div>
+  <div class="ground">✓ Every figure is read verbatim from the session logs — the only durations shown are waits measured between an AI question and your answer.</div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="rate">Exchange rate: <strong>R</strong> <input id="rateInput" type="number" step="0.01"> per USD <span id="rateNote"></span> — edit to recalculate Rand amounts.</div>
+
+  <h2>Where the work went <span class="q">— activity &amp; spend per phase / epic</span></h2>
+  <table id="mainTable"></table>
+  <div class="legend">Click a group header (<span style="color:var(--accent)">▸</span>) to collapse its rows. <strong>Fix cycles</strong> = extra epic-end E2E passes beyond the first (each rerun of the batched Playwright pass means the epic bounced back to BUILD for fixes). <strong>Cache hit</strong> = share of input tokens served from cache (higher is cheaper &amp; faster).</div>
+
+  <h2>User involvement &amp; waiting <span class="q">— what the user did, and where the process sat idle</span></h2>
+  <table id="humanTable"></table>
+  <div class="legend" id="humanLegend"></div>
+
+  <h2>Model mix <span class="q">— which model did the work, and what it cost</span></h2>
+  <div class="blk"><div class="stack" id="modelStack"></div><div class="legend" id="modelLegend"></div></div>
+  <table id="modelTable" style="margin-top:14px"></table>
+
+  <h2>Tool activity <span class="q">— what Claude actually did, by call count</span></h2>
+  <div class="blk" id="toolBars"></div>
+  <div class="legend">Each bar is the number of times that tool was invoked across the whole workflow (orchestrator + all sub-agents). A high <em>Edit</em>-to-<em>Write</em> ratio means files were revisited a lot — a churn signal.</div>
+
+  <h2>Agent composition <span class="q">— who ran, how often, and at what cost</span></h2>
+  <table id="agentTable"></table>
+  <div class="legend"><strong>Instances</strong> = how many times that sub-agent was spawned across the workflow (the orchestrator is the single continuous main session, so it has no instance count).</div>
+
+  <div class="note" id="footNote"></div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/;
+let rate = DATA.usdToZar;
+const collapsed = new Set(); // group indices the user has collapsed — preserved across re-renders
+
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const fmtTok = n => { if (n < 1e3) return String(n||0); const k = Math.round(n/1e3); return k < 1000 ? k+' k' : (n/1e6).toFixed(1)+' M'; };
+const fmtDur = ms => { const m = Math.round((ms||0)/60000); if (m < 1) return '<1m'; if (m < 60) return m+'m'; const h = Math.floor(m/60); return h+'h'+String(m%60).padStart(2,'0'); };
+const mkInputs0 = () => ({ typed:0, commands:0, manualTest:0, interruptions:0 });
+const mkWaits0 = () => ({ approvalMs:0, approvalCount:0, generalMs:0, generalCount:0, stallMs:0, stallCount:0 });
+const fmtUsd = n => '$' + (n||0).toFixed(2);
+const fmtZar = n => 'R' + (n*rate).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = n => (n*100).toFixed(0) + '%';
+const shortModel = m => m.replace('claude-','').replace('-20251001','');
+const cacheClass = h => h >= .8 ? 'good' : '';
+// Escape data-derived strings (epic/feature labels, agent names) before they go into innerHTML.
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' })[c]);
+
+const TOOL_CLASS = { Read:'t-read', Edit:'t-edit', MultiEdit:'t-edit', Write:'t-write', Bash:'t-bash' };
+
+function render() {
+  document.getElementById('featureName').textContent = DATA.feature || '(unnamed)';
+  document.getElementById('genAt').textContent = new Date(DATA.generatedAt).toLocaleString();
+  const rateInputEl = document.getElementById('rateInput');
+  if (document.activeElement !== rateInputEl) rateInputEl.value = rate.toFixed(2);
+  document.getElementById('rateNote').textContent = DATA.rateProvided ? '' : '(placeholder — pass --rate)';
+
+  const g = DATA.grand;
+  const totalAgents = DATA.agents.filter(a=>a.instances!=null).reduce((s,a)=>s+a.instances,0);
+  const ui = DATA.userInputsTotal || mkInputs0();
+  const uiTotal = ui.typed + ui.commands + ui.manualTest + ui.interruptions;
+  const w = DATA.waitsTotal || mkWaits0();
+  const cards = [
+    { k:'Total cost', v:fmtZar(g.costUsd), cls:'zar', d:fmtUsd(g.costUsd)+' · '+fmtInt(g.calls)+' API calls' },
+    { k:'Tokens processed', v:fmtTok(g.totalTokens), d:fmtInt(g.output)+' generated' },
+    { k:'Cache hit rate', v:pct(g.cacheHit), cls:cacheClass(g.cacheHit), d:'of input served from cache' },
+    { k:'Sub-agents spawned', v:fmtInt(totalAgents), d:DATA.agents.filter(a=>a.instances!=null).length+' agent types' },
+    { k:'Questions asked', v:fmtInt(DATA.buckets.reduce((s,b)=>s+b.questionsAsked,0)), d:DATA.buckets.reduce((s,b)=>s+b.questionDialogs,0)+' dialogs' },
+    { k:'Deliberate user inputs', v:fmtInt(uiTotal), d:`${ui.typed} typed · ${ui.commands} commands · ${ui.manualTest} manual-test · ${ui.interruptions} interrupts` },
+    { k:'Waiting on user', v:fmtDur(w.approvalMs + w.generalMs), d:`${w.approvalCount + w.generalCount} waits · stalls (>${DATA.stallThresholdMin||10}m) kept apart` },
+  ];
+  document.getElementById('cards').innerHTML = cards.map(c =>
+    `<div class="card"><div class="k">${c.k}</div><div class="v ${c.cls||''}">${c.v}</div><div class="d">${c.d}</div></div>`).join('');
+
+  renderMain();
+  renderHuman();
+  renderModels();
+  renderTools();
+  renderAgents();
+  renderNote();
+}
+
+// ---- per contiguous group-segment aggregates (avoids the recurring "Project phases" bug) ----
+function segments() {
+  const B = DATA.buckets, segs = []; let last = null, cur = null;
+  for (const b of B) {
+    if (b.group !== last) { cur = { group:b.group, cost:0, calls:0, output:0, cacheRead:0, inProc:0, agents:0, fix:0, q:0 }; segs.push(cur); last = b.group; }
+    cur.cost += b.tokens.costUsd; cur.calls += b.tokens.calls; cur.output += b.tokens.output;
+    cur.cacheRead += b.tokens.cacheRead; cur.inProc += b.tokens.input + b.tokens.cacheRead + b.tokens.cacheWrite;
+    cur.agents += b.agentInstances; cur.fix += b.fixCycles; cur.q += b.questionsAsked;
+  }
+  return segs;
+}
+
+function renderMain() {
+  const B = DATA.buckets, segs = segments();
+  let html = `<tr><th>Phase / Epic</th><th>Cost</th><th>API calls</th><th>Generated</th><th>Cache hit</th><th>Sub-agents</th><th>Fix cycles</th><th>Questions</th></tr>`;
+  let last = null, gi = -1;
+  for (const b of B) {
+    if (b.group !== last) {
+      const s = segs[++gi], sh = s.inProc ? s.cacheRead/s.inProc : 0;
+      html += `<tr class="groupToggle${collapsed.has(gi) ? '' : ' open'}" data-g="${gi}"><td><span class="caret">▸</span>${esc(b.group)}</td>`
+        + `<td class="gtot zar">${fmtZar(s.cost)}</td><td class="gtot">${fmtInt(s.calls)}</td><td class="gtot">${fmtTok(s.output)}</td>`
+        + `<td class="gtot ${cacheClass(sh)}" style="${sh>=.8?'color:var(--green)':''}">${pct(sh)}</td><td class="gtot">${s.agents||'—'}</td>`
+        + `<td class="gtot">${s.fix||'—'}</td><td class="gtot">${s.q||'—'}</td></tr>`;
+      last = b.group;
+    }
+    html += `<tr data-gi="${gi}" style="${collapsed.has(gi) ? 'display:none' : ''}"><td style="padding-left:26px">${esc(b.label)}</td>`
+      + `<td class="zar">${fmtZar(b.tokens.costUsd)}</td><td>${fmtInt(b.tokens.calls)}</td><td>${fmtTok(b.tokens.output)}</td>`
+      + `<td style="${b.cacheHit>=.8?'color:var(--green)':''}">${pct(b.cacheHit)}</td>`
+      + `<td>${b.agentInstances||'<span class="dim">—</span>'}</td>`
+      + `<td>${b.fixCycles ? `<span class="pill warn">${b.fixCycles}</span>` : '<span class="dim">—</span>'}</td>`
+      + `<td>${b.questionsAsked||'<span class="dim">—</span>'}</td></tr>`;
+  }
+  const g = DATA.grand;
+  html += `<tr class="total"><td>Total</td><td class="zar">${fmtZar(g.costUsd)}</td><td>${fmtInt(g.calls)}</td><td>${fmtTok(g.output)}</td>`
+    + `<td>${pct(g.cacheHit)}</td><td>${DATA.buckets.reduce((s,b)=>s+b.agentInstances,0)}</td>`
+    + `<td>${DATA.buckets.reduce((s,b)=>s+b.fixCycles,0)}</td><td>${DATA.buckets.reduce((s,b)=>s+b.questionsAsked,0)}</td></tr>`;
+  const tbl = document.getElementById('mainTable');
+  tbl.innerHTML = html;
+  tbl.querySelectorAll('tr.groupToggle').forEach(h => h.addEventListener('click', () => {
+    const gi = +h.dataset.g;
+    const open = h.classList.toggle('open');
+    if (open) collapsed.delete(gi); else collapsed.add(gi);
+    tbl.querySelectorAll(`tr[data-gi="${gi}"]`).forEach(r => r.style.display = open ? '' : 'none');
+  }));
+}
+
+function renderHuman() {
+  const B = DATA.buckets;
+  const anyData = B.some(b => b.userInputs || b.waits);
+  const tbl = document.getElementById('humanTable');
+  const legend = document.getElementById('humanLegend');
+  if (!anyData) {
+    tbl.style.display = 'none';
+    legend.innerHTML = 'This data file was generated by an older script version — re-run the report to get user-involvement metrics.';
+    return;
+  }
+  let html = `<tr><th>Phase / Epic</th><th>Typed messages</th><th>Commands</th><th>Manual-test submissions</th><th>Interruptions</th><th>Approval waits</th><th>Other waits</th><th>Stalls (>${DATA.stallThresholdMin||10}m)</th></tr>`;
+  const dash = '<span class="dim">—</span>';
+  for (const b of B) {
+    const u = b.userInputs || mkInputs0(), wt = b.waits || mkWaits0();
+    html += `<tr><td>${esc(b.label)}</td>`
+      + `<td>${u.typed || dash}</td><td>${u.commands || dash}</td><td>${u.manualTest || dash}</td><td>${u.interruptions || dash}</td>`
+      + `<td>${wt.approvalCount ? `${fmtDur(wt.approvalMs)} <span class="dim">(${wt.approvalCount})</span>` : dash}</td>`
+      + `<td>${wt.generalCount ? `${fmtDur(wt.generalMs)} <span class="dim">(${wt.generalCount})</span>` : dash}</td>`
+      + `<td>${wt.stallCount ? `${fmtDur(wt.stallMs)} <span class="dim">(${wt.stallCount})</span>` : dash}</td></tr>`;
+  }
+  const ui = DATA.userInputsTotal || mkInputs0(), w = DATA.waitsTotal || mkWaits0();
+  html += `<tr class="total"><td>Total</td><td>${fmtInt(ui.typed)}</td><td>${fmtInt(ui.commands)}</td><td>${fmtInt(ui.manualTest)}</td><td>${fmtInt(ui.interruptions)}</td>`
+    + `<td>${fmtDur(w.approvalMs)} <span class="dim">(${w.approvalCount})</span></td>`
+    + `<td>${fmtDur(w.generalMs)} <span class="dim">(${w.generalCount})</span></td>`
+    + `<td>${fmtDur(w.stallMs)} <span class="dim">(${w.stallCount})</span></td></tr>`;
+  tbl.innerHTML = html;
+  legend.innerHTML = `<strong>Approval waits</strong> = an AskUserQuestion tool call → its recorded answer. <strong>Other waits</strong> = end of the previous transcript event → the next deliberate user input. Gaps over ${DATA.stallThresholdMin||10} minutes are <strong>stalls</strong> (overnight, meetings) — shown separately, never summed into waits. <strong>Not measurable:</strong> time spent at permission prompts — those aren't recorded in transcripts and hide inside tool runtimes. Waits measure how long the process sat idle awaiting input, <strong>not</strong> how long the user actively worked — that is not recorded.`;
+}
+
+function renderModels() {
+  const entries = Object.entries(DATA.modelTotals).sort((a,b)=>b[1].costUsd-a[1].costUsd);
+  const total = entries.reduce((s,[,m])=>s+m.costUsd,0) || 1;
+  document.getElementById('modelStack').innerHTML = entries.map(([,m],i)=>
+    `<span class="m-${i%5}" style="width:${(m.costUsd/total*100).toFixed(2)}%"></span>`).join('');
+  document.getElementById('modelLegend').innerHTML = entries.map(([m],i)=>
+    `<span class="sw m-${i%5}"></span>${esc(shortModel(m))}`).join('');
+  let html = `<tr><th>Model</th><th>API calls</th><th>Generated</th><th>Cost</th><th>Share of cost</th></tr>`;
+  for (const [m,t] of entries) html += `<tr><td>${esc(shortModel(m))}</td><td>${fmtInt(t.calls)}</td><td>${fmtTok(t.output)}</td><td class="zar">${fmtZar(t.costUsd)}</td><td>${pct(t.costUsd/total)}</td></tr>`;
+  document.getElementById('modelTable').innerHTML = html;
+}
+
+function renderTools() {
+  const entries = Object.entries(DATA.toolTotals).sort((a,b)=>b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  document.getElementById('toolBars').innerHTML = entries.map(([name,c]) => {
+    const cls = TOOL_CLASS[name] || 't-other';
+    return `<div class="hbar"><div class="lbl">${esc(name)}</div><div class="track"><i class="${cls}" style="width:${(c/max*100).toFixed(1)}%"></i></div><div class="val">${fmtInt(c)}</div></div>`;
+  }).join('') || '<div class="dim">No tool calls recorded.</div>';
+}
+
+function renderAgents() {
+  let html = `<tr><th>Agent</th><th>Instances</th><th>API calls</th><th>Generated</th><th>Cost</th><th>Models</th></tr>`;
+  for (const a of DATA.agents) {
+    const models = a.models.map(m => `${shortModel(m.model)} ×${m.count}`).join(', ');
+    html += `<tr><td>${esc(a.agent)}</td>`
+      + `<td>${a.instances==null?'<span class="dim">main session</span>':fmtInt(a.instances)}</td>`
+      + `<td>${fmtInt(a.calls)}</td><td>${fmtTok(a.output)}</td><td class="zar">${fmtZar(a.costUsd)}</td>`
+      + `<td class="dim" style="text-align:left;white-space:normal;font-size:13px">${esc(models)}</td></tr>`;
+  }
+  document.getElementById('agentTable').innerHTML = html;
+}
+
+function renderNote() {
+  const pd = DATA.postDelivery;
+  const pdLine = pd && pd.sessions && pd.sessions.length
+    ? `<li><strong>Post-delivery reporting excluded:</strong> ${pd.sessions.length} session(s) whose first command was a report/analysis command (${pd.sessions.map(s=>esc(s.firstCommand||'?')).join(', ')}) are excluded from every figure above. They cost ${fmtZar(pd.tokens.costUsd)} (${fmtUsd(pd.tokens.costUsd)}) on their own — report generation, not build work.</li>`
+    : '';
+  const dirsLine = DATA.extraDirs && DATA.extraDirs.length
+    ? `<li><strong>Worktree transcripts included:</strong> ${DATA.extraDirs.length} sibling transcript director${DATA.extraDirs.length===1?'y':'ies'} (git-worktree variants of the project path) were scanned in addition to the main one.</li>`
+    : '';
+  document.getElementById('footNote').innerHTML =
+    `<strong>What's on this page — and what isn't.</strong>`
+    + `<ul>`
+    + `<li><strong>Exact, from the logs:</strong> token counts, API-call counts, per-model attribution, cache read/write split, tool-call counts, sub-agent spawns, question counts, and deliberate-user-input counts are recorded verbatim by Claude Code — nothing here is estimated.</li>`
+    + `<li><strong>Cost</strong> is computed from those exact token counts at list API prices (${esc(DATA.pricingNote)}). On a subscription this is the API-equivalent value of the compute, not cash spent.</li>`
+    + `<li><strong>User inputs use transcript hygiene:</strong> harness-injected user-role entries (tool results, task notifications, IDE events, meta reminders) are excluded; only typed messages, slash commands, manual-test submissions, and interruptions count.</li>`
+    + `<li><strong>The only durations are waiting-on-user</strong>, measured between well-defined anchors (a question → its answer; end of AI output → the next deliberate input), with gaps over ${DATA.stallThresholdMin||10} minutes reported apart as stalls. AI busy/elapsed time remains deliberately unmeasured — it can only be reconstructed from timestamp gaps with arbitrary caps and isn't trustworthy. Permission-prompt waits are invisible (not recorded in transcripts; they hide inside tool runtimes).</li>`
+    + pdLine
+    + dirsLine
+    + `<li><strong>Buckets are epic-level.</strong> Activity is attributed to a leading INTAKE window and one window per epic (by each epic's <code>createdAt</code>). Epics built in parallel on separate branches would overlap into the earlier window.</li>`
+    + `</ul>`;
+}
+
+document.getElementById('rateInput').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (v > 0) { rate = v; render(); }
+});
+render();
+</script>
+</body>
+</html>

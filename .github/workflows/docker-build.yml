@@ -1,0 +1,62 @@
+name: Docker Build
+
+# Verifies the production Dockerfile actually builds and the resulting container
+# boots and serves. quality-gates.yml already runs `npm run build`, so this job
+# covers only the Docker-specific parts: multi-stage assembly, the standalone
+# copy layout, the non-root `node` user, and `server.js` starting up.
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'web/**'
+      - '.github/workflows/docker-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'web/**'
+      - '.github/workflows/docker-build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    name: Build & boot image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # ubuntu-latest ships Docker with BuildKit on by default, so the
+      # `RUN --mount=type=cache` line in the Dockerfile works without any extra
+      # setup. Build context is the repo root (the trailing ".").
+      - name: Build production image
+        run: docker build -t stadium8-web:ci .
+
+      - name: Boot the container and check it serves
+        run: |
+          docker run -d --name web -p 3000:3000 stadium8-web:ci
+          for i in $(seq 1 30); do
+            if curl -sS -o /dev/null http://localhost:3000; then
+              echo "Container is serving on :3000"
+              docker rm -f web >/dev/null
+              exit 0
+            fi
+            echo "Attempt $i/30 - not ready yet, waiting..."
+            sleep 2
+          done
+          echo "::error title=Docker boot failed::Container did not serve on :3000 within 60s"
+          docker logs web
+          docker rm -f web >/dev/null
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Docker Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Built the production image from the repo-root \`Dockerfile\` and confirmed the container boots and serves on port 3000." >> "$GITHUB_STEP_SUMMARY"

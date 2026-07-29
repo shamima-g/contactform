@@ -1,0 +1,93 @@
+# Template infrastructure tests — DEV REPO ONLY.
+#
+# Runs the maintainer test suites that guard the workflow's own plumbing: the
+# `.claude/` hooks and scripts (standalone-harness `*.tests.js`) and the CI
+# gate scripts under `.github/scripts/` (`*.test.js`, run via `node --test`).
+#
+# These tests — and this workflow — never ship to end users:
+#   - the test files are excluded from the release repo by `.release-ignore`
+#     (`.claude/**/*.tests.js`, `.github/scripts/*.test.js`), so they would not
+#     even exist there to run;
+#   - this workflow is likewise listed in `.release-ignore`, and the publish
+#     pipeline never pushes `.github/workflows/` to the release repo anyway.
+# Do NOT hand-copy this file into the release repo (see CONTRIBUTING.md step 6).
+#
+# No dependency install: every suite uses only Node built-ins.
+
+name: Template Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - "feature/**"
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".claude/**"
+      - ".github/scripts/**"
+      - ".github/workflows/template-tests.yml"
+  push:
+    branches:
+      - main
+      - master
+      - "feature/**"
+    paths:
+      - ".claude/**"
+      - ".github/scripts/**"
+      - ".github/workflows/template-tests.yml"
+
+permissions:
+  contents: read
+
+# Matches the baseline in quality-gates.yml.
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  template-tests:
+    name: Template script & hook tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Suites run sequentially in one job so nothing races on shared state
+      # (e.g. bash-permission-checker.tests.js rewrites .claude/preferences.json
+      # and restores it). A single non-zero exit fails the job.
+      - name: Run template tests
+        shell: bash
+        run: |
+          set -uo pipefail
+          fail=0
+
+          echo "== Standalone-harness suites (.claude/**/*.tests.js) =="
+          while IFS= read -r f; do
+            echo "::group::$f"
+            if ! node "$f"; then
+              echo "::error file=$f::template test suite failed"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done < <(find .claude -name '*.tests.js' | sort)
+
+          echo "== node --test suites (.github/scripts/*.test.js) =="
+          while IFS= read -r f; do
+            echo "::group::$f"
+            if ! node --test "$f"; then
+              echo "::error file=$f::template test suite failed"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done < <(find .github/scripts -name '*.test.js' | sort)
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more template test suites failed."
+            exit 1
+          fi
+          echo "All template test suites passed."

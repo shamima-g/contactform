@@ -1,0 +1,40 @@
+# Build context is the repo root. Keep it lean and never ship installed
+# dependencies or build output — they are recreated inside the image.
+
+# Dependencies and build output (re-created in the image)
+web/node_modules
+node_modules
+web/.next
+web/out
+web/build
+
+# Local env files — pass secrets at runtime, never bake them into the image
+web/.env
+web/.env.*
+!web/.env.example
+
+# Tests, tooling, and caches not needed for a production build
+web/e2e
+web/playwright-report
+web/test-results
+web/coverage
+web/.husky
+**/*.log
+**/.DS_Store
+
+# Top-level content not needed to build the web app
+documentation
+generated-docs
+.claude
+*.md
+
+# VCS / CI / IDE
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Docker files themselves
+Dockerfile
+.dockerignore

@@ -1,0 +1,78 @@
+{
+  "featureName": "Discovery Vitality Onboarding",
+  "specPath": null,
+  "currentEpic": null,
+  "currentStory": null,
+  "currentPhase": "SCOPE",
+  "phaseStatus": "ready",
+  "epics": {},
+  "history": [
+    {
+      "timestamp": "2026-05-13T15:22:55.135Z",
+      "epic": null,
+      "story": null,
+      "from": "NONE",
+      "to": "INTAKE",
+      "note": "Workflow initialized"
+    },
+    {
+      "timestamp": "2026-05-13T15:57:12.961Z",
+      "epic": null,
+      "story": null,
+      "from": "INTAKE",
+      "to": "DESIGN"
+    },
+    {
+      "timestamp": "2026-05-13T16:30:49.480Z",
+      "epic": null,
+      "story": null,
+      "from": "DESIGN",
+      "to": "SCOPE"
+    }
+  ],
+  "lastUpdated": "2026-05-13T16:30:49.480Z",
+  "intake": {
+    "manifestExists": true,
+    "frsExists": true,
+    "requirementCount": null,
+    "businessRuleCount": null,
+    "capturedAt": "2026-05-13T15:57:12.958Z"
+  },
+  "design": {
+    "agentsExpected": [
+      "design-api-agent",
+      "design-style-agent",
+      "design-roles-agent"
+    ],
+    "agentsCompleted": [
+      "design-api-agent",
+      "design-style-agent",
+      "design-roles-agent"
+    ],
+    "autonomousExpected": [
+      "mock-setup-agent",
+      "type-generator-agent"
+    ],
+    "autonomousCompleted": [
+      "mock-setup-agent",
+      "type-generator-agent"
+    ],
+    "capturedAt": "2026-05-13T16:02:40.097Z",
+    "agentsStarted": [
+      "design-api-agent",
+      "design-style-agent",
+      "design-roles-agent"
+    ],
+    "autonomousStarted": [
+      "mock-setup-agent",
+      "type-generator-agent"
+    ]
+  },
+  "designArtifacts": {
+    "apiSpec": true,
+    "designTokensCss": true,
+    "designTokensMd": true,
+    "wireframes": 0,
+    "capturedAt": "2026-05-13T16:30:49.479Z"
+  }
+}

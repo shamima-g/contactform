@@ -1,0 +1,216 @@
+{
+  "featureName": "Discovery Vitality Medical Insurance — Customer Onboarding",
+  "specPath": null,
+  "currentEpic": 1,
+  "currentStory": 3,
+  "currentPhase": "QA",
+  "phaseStatus": "in_progress",
+  "epics": {
+    "1": {
+      "stories": {
+        "1": {
+          "phase": "COMPLETE",
+          "name": "story-1-bff-authentication-infrastructure",
+          "testFiles": 1,
+          "acceptance": {
+            "total": 8,
+            "checked": 8
+          },
+          "e2eStatus": "auto-skipped:non-routable",
+          "e2eLastRun": "2026-05-12T14:09:58.173Z",
+          "e2ePassCount": 0,
+          "e2eFailCount": 0,
+          "manualVerification": "passed"
+        },
+        "2": {
+          "phase": "COMPLETE",
+          "name": "story-2-post-login-role-based-routing-and-home-page",
+          "testFiles": 1,
+          "acceptance": {
+            "total": 7,
+            "checked": 7
+          },
+          "e2eStatus": "passed-after-fix",
+          "e2eLastRun": "2026-05-13T11:27:35.471Z",
+          "e2ePassCount": 6,
+          "e2eFailCount": 0,
+          "e2eFixCycleCount": 1,
+          "manualVerification": "passed"
+        },
+        "3": {
+          "phase": "QA",
+          "name": "story-3-logout",
+          "testFiles": 1,
+          "acceptance": {
+            "total": 5,
+            "checked": 1
+          },
+          "e2eStatus": "passed-after-fix",
+          "e2eLastRun": "2026-05-14T10:39:18.804Z",
+          "e2ePassCount": 5,
+          "e2eFailCount": 0,
+          "e2eFixCycleCount": 2
+        },
+        "4": {
+          "phase": "PENDING",
+          "name": "story-4-session-expiry-warning-modal"
+        }
+      },
+      "phase": "STORIES",
+      "totalStories": 4,
+      "name": "epic-1-authentication-and-role-based-entry"
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-05-08T15:59:42.693Z",
+      "epic": null,
+      "story": null,
+      "from": "NONE",
+      "to": "INTAKE",
+      "note": "Workflow initialized"
+    },
+    {
+      "timestamp": "2026-05-09T22:48:51.634Z",
+      "epic": null,
+      "story": null,
+      "from": "INTAKE",
+      "to": "DESIGN"
+    },
+    {
+      "timestamp": "2026-05-12T11:13:58.460Z",
+      "epic": null,
+      "story": null,
+      "from": "DESIGN",
+      "to": "SCOPE"
+    },
+    {
+      "timestamp": "2026-05-12T12:17:27.495Z",
+      "epic": 1,
+      "story": null,
+      "from": "NONE",
+      "to": "STORIES"
+    },
+    {
+      "timestamp": "2026-05-12T12:26:28.825Z",
+      "epic": 1,
+      "story": 1,
+      "from": "PENDING",
+      "to": "REALIGN"
+    },
+    {
+      "timestamp": "2026-05-12T12:38:03.019Z",
+      "epic": 1,
+      "story": 1,
+      "from": "REALIGN",
+      "to": "TEST-DESIGN"
+    },
+    {
+      "timestamp": "2026-05-12T12:54:21.639Z",
+      "epic": 1,
+      "story": 1,
+      "from": "TEST-DESIGN",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-05-12T13:07:57.044Z",
+      "epic": 1,
+      "story": 1,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-05-12T13:28:03.604Z",
+      "epic": 1,
+      "story": 1,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-05-13T08:33:16.089Z",
+      "epic": 1,
+      "story": 1,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-05-13T08:36:33.637Z",
+      "epic": 1,
+      "story": 2,
+      "from": "PENDING",
+      "to": "TEST-DESIGN"
+    },
+    {
+      "timestamp": "2026-05-13T09:45:48.428Z",
+      "epic": 1,
+      "story": 2,
+      "from": "TEST-DESIGN",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-05-13T09:53:52.489Z",
+      "epic": 1,
+      "story": 2,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-05-13T10:05:47.398Z",
+      "epic": 1,
+      "story": 2,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    },
+    {
+      "timestamp": "2026-05-13T15:08:48.197Z",
+      "epic": 1,
+      "story": 2,
+      "from": "QA",
+      "to": "COMPLETE"
+    },
+    {
+      "timestamp": "2026-05-13T15:10:55.214Z",
+      "epic": 1,
+      "story": 3,
+      "from": "PENDING",
+      "to": "TEST-DESIGN"
+    },
+    {
+      "timestamp": "2026-05-14T10:04:18.105Z",
+      "epic": 1,
+      "story": 3,
+      "from": "TEST-DESIGN",
+      "to": "WRITE-TESTS"
+    },
+    {
+      "timestamp": "2026-05-14T10:12:12.620Z",
+      "epic": 1,
+      "story": 3,
+      "from": "WRITE-TESTS",
+      "to": "IMPLEMENT"
+    },
+    {
+      "timestamp": "2026-05-14T10:18:03.420Z",
+      "epic": 1,
+      "story": 3,
+      "from": "IMPLEMENT",
+      "to": "QA"
+    }
+  ],
+  "lastUpdated": "2026-05-14T10:39:18.805Z",
+  "intake": {
+    "manifestExists": true,
+    "frsExists": true,
+    "requirementCount": 69,
+    "businessRuleCount": 18,
+    "capturedAt": "2026-05-09T22:48:51.633Z"
+  },
+  "designArtifacts": {
+    "apiSpec": true,
+    "designTokensCss": true,
+    "designTokensMd": false,
+    "wireframes": 0,
+    "capturedAt": "2026-05-12T11:13:58.460Z"
+  },
+  "totalEpics": 7
+}

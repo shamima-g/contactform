@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$comment": "Source of truth for filename conventions of AI-generated documents under the epic-branch workflow. Read by .claude/hooks/enforce-generated-doc-names.js (PreToolUse enforcement) and .claude/scripts/validate-generated-doc-names.js (repo-wide audit). Human-readable mirror: .claude/shared/naming-conventions.md",
+  "version": 2,
+  "matching": {
+    "description": "Each convention is considered in scope for a file when its dirGlob matches the file's parent directory. A file is OK for a convention when its basename matches filenamePattern. A file is DRIFT for a convention when its basename matches badPattern but NOT filenamePattern. If no convention classes the file as OK or DRIFT, it is ungoverned and ignored."
+  },
+  "conventions": [
+    {
+      "id": "project-facts",
+      "writtenBy": "intake-agent (produce / split-brief modes)",
+      "dirGlob": "generated-docs/",
+      "filenamePattern": "^project\\.md$",
+      "badPattern": "^project-facts\\.md$",
+      "example": "project.md",
+      "counterexample": "project-facts.md",
+      "rationale": "Stable project-level facts inherit across all epics. Exact filename; lives on main."
+    },
+    {
+      "id": "epic-brief",
+      "writtenBy": "intake-agent (produce / epic-only / split-brief modes)",
+      "dirGlob": "generated-docs/epics/<slug>/",
+      "filenamePattern": "^brief\\.md$",
+      "badPattern": "^epic-brief\\.md$",
+      "example": "brief.md",
+      "counterexample": "epic-brief.md",
+      "rationale": "Per-epic feature requirements. Exact filename; parent directory identifies the epic."
+    },
+    {
+      "id": "epic-state",
+      "writtenBy": "epic-state.js --init (orchestrator updates via Edit thereafter)",
+      "dirGlob": "generated-docs/epics/<slug>/",
+      "filenamePattern": "^state\\.json$",
+      "badPattern": "^epic-state\\.json$",
+      "example": "state.json",
+      "counterexample": "epic-state.json",
+      "rationale": "Per-epic workflow state on the epic/<slug> branch; becomes the frozen historical record on main after merge."
+    },
+    {
+      "id": "epic-journal",
+      "writtenBy": "orchestrator (appended per story commit from developer's Tier-2/3 entries)",
+      "dirGlob": "generated-docs/epics/<slug>/",
+      "filenamePattern": "^journal\\.md$",
+      "badPattern": "^epic-journal\\.md$",
+      "example": "journal.md",
+      "counterexample": "epic-journal.md",
+      "rationale": "Per-epic plain-language log. Exact filename; parent directory identifies the epic."
+    },
+    {
+      "id": "story-file",
+      "writtenBy": "/continue (orchestrator, after the stories approval)",
+      "dirGlob": "generated-docs/epics/<slug>/stories/",
+      "filenamePattern": "^story-\\d+-[a-z0-9-]+\\.md$",
+      "badPattern": "^story-\\d+\\.md$",
+      "example": "story-3-role-aware-nav.md",
+      "counterexample": "story-3.md",
+      "rationale": "Per-story metadata file (title, summary, ACs, manual-test checklist). Parent directory already identifies the epic — only the story number is in the filename. The slug suffix preserves recognisability in directory listings."
+    },
+    {
+      "id": "e2e-spec",
+      "writtenBy": "test-generator",
+      "dirGlob": "web/e2e/",
+      "filenamePattern": "^epic-[a-z][a-z0-9-]*-story-\\d+-[a-z][a-z0-9-]*\\.spec\\.ts$",
+      "badPattern": "^story-\\d+-[a-z0-9-]+\\.spec\\.ts$",
+      "example": "epic-dashboard-overview-story-3-role-aware-nav.spec.ts",
+      "counterexample": "story-3-role-aware-nav.spec.ts",
+      "rationale": "E2E specs live in a flat directory. playwright-runner epic-end mode globs them as web/e2e/epic-<slug>-story-*.spec.ts — both the epic slug and story number are required for batched runs and per-story attribution during fix cycles."
+    }
+  ]
+}
